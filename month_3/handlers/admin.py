@@ -1,5 +1,5 @@
 from aiogram import types
-from month_3 import configgg
+from month_3 import config
 async def on_user_joined(message: types.Message):
     await message.delete()
 

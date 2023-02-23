@@ -1,6 +1,6 @@
 from aiogram import executor, types
 from aiogram.dispatcher.filters import Text
-from configgg import dp
+from config import dp
 from handlers.admin import (
     on_user_joined,
     filter_messages,

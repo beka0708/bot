@@ -10,7 +10,7 @@ from handlers.filters import IsAdminFilter
 
 if __name__ == "__main__":
     dp.filters_factory.bind(IsAdminFilter)
-    # dp.register_message_handlers(on_user_joined, content_types=["new_chat_members"])
+    # db.register_message_handlers(on_user_joined, content_types=["new_chat_members"])
     dp.register_message_handler(filter_messages)
     dp.register_message_handler(cmd_ban, is_admin=True, commands=['ban'], commands_prefix='!/')
     print('hello')

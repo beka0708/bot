@@ -1,6 +1,5 @@
-import random
-
 from aiogram import types
+import random
 
 kb = types.InlineKeyboardMarkup()
 kb.add(types.InlineKeyboardButton(
@@ -12,19 +11,17 @@ kb.add(types.InlineKeyboardButton(
     callback_data="address"
 ))
 
-
-# @db.message_handler(commands=["start"])
-async def start(message: types.Message):
+# @dp.message_handler(commands=["start"])
+async def start(message:types.Message):
     user = message.from_user.full_name
     await message.answer(
-        f'Приветствуем, {user}!\n')
-    await message.reply(
+        f'Приветствуем, {user}!\n' 
+        f'Добро пожаловать в книжный магазин <<bookaddicts.kg>>!')
+    await message.answer(
         f'Выберите команду:',
         reply_markup=kb
     )
-
-
-# @db.message_handler(commands=["help"])
+# @dp.message_handler(commands=["help"])
 async def help(message: types.Message):
     await message.answer(
         """
@@ -35,9 +32,7 @@ async def help(message: types.Message):
 /aboutus - О нас
         """
     )
-
-
-# @db.message_handler(commands=["myinfo"])
+# @dp.message_handler(commands=["myinfo"])
 async def myinfo(message: types.Message):
     user = message.from_user.full_name
     user_id = message.from_user.id
@@ -50,13 +45,11 @@ async def myinfo(message: types.Message):
         f'User last name: {last_name}\n'
     )
     # await message.delete()
-
-
-# @db.message_handler(commands=["picture"])
+# @dp.message_handler(commands=["picture"])
 async def gallery(message: types.Message):
-    photos = ['images_rnd/book1.jpeg', 'images_rnd/book2.jpeg', 'images_rnd/book3.jpeg', 'images_rnd/book4.jpeg']
+    photos = ['images_rnd/book1.jpeg','images_rnd/book2.jpeg','images_rnd/book3.jpeg','images_rnd/book4.jpeg']
     with open(random.choice(photos), 'rb') as photos:
         await message.answer_photo(
-            photo=photos,
-            caption='books'
+            photo = photos,
+            caption = 'books'
         )

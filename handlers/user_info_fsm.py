@@ -2,91 +2,115 @@ from aiogram import types
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery
+from db.base import create_order
 
 
 class UserForm(StatesGroup):
+    product_id = State()
     name = State()
     age = State()
     address = State()
     day = State()
 
 
-async def start_user_dialog(message: types.Message):
-    await UserForm.name.set()
-    await message.answer("Как вас зовут?")
+async def start_user_dialog(callback: types.CallbackQuery):
+    """
+    сохраняем данные о товаре
+    """
+    await UserForm.product_id.set()
+    state = UserForm.product_id
+    async with state.proxy() as data:
+        data['product_id'] = int(callback.data.replace('buy_product_',""))
+    await callback.message.answer("Please input your name and last name:")
+
 
 
 async def process_name(message: types.Message, state: FSMContext):
+    """
+    сохраняем данные об имени
+    """
     async with state.proxy() as data:
-        # сохраяем данные о имени
         data['name'] = message.text
-
     await UserForm.next()
-    await message.answer("Сколько вам лет?")
+    await message.answer("How old are you?")
 
 
 async def process_age(message: types.Message, state: FSMContext):
+    """
+    обработчик для проверки возраста на цифры
+    """
     age = message.text
     if not age.isnumeric():
-        await message.reply("Вводите только цифры")
+        await message.reply("Wrong data! Input only numbers!")
+        await message.answer("How old are you?")
     else:
         async with state.proxy() as data:
-            # сохраняем данные о возрасте
+            """
+            сохраняем данные о возрасте
+            """
             data['age'] = age
-
-    await UserForm.next()
-    await message.answer("Какой у вас адрес?")
+        await UserForm.next()
+        await message.answer("Input your address: ")
 
 
 async def process_address(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        # сохраяем данные о адресе
+        """
+        сохраняем данные об адресе
+        """
         data['address'] = message.text
         kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        buttons = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
+        buttons = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
         kb.add(*buttons)
 
     await UserForm.next()
-    await message.answer("В какой день недели вам удобно получить товар?\n"
-                         "Мы работаем пн-сб, воскресенье выходной", reply_markup=kb)
+    await message.answer("What day of the week do you want to deliver your order?\n"
+                         "Our schedule: Mon - Sat, Sunday - day-off", reply_markup=kb)
 
 
 async def process_day(message: types.Message, state: FSMContext):
+    """
+    сохраяем данные о дне недели для получения товара
+    """
     async with state.proxy() as data:
-        # сохраяем данные о дне недели для получения товара
         data['day'] = message.text
+        #saving details of order
+        create_order(data)
+
         buttons = [
-            types.InlineKeyboardButton(text='да', callback_data='да'),
-            types.InlineKeyboardButton(text='нет', callback_data='нет')
+            types.InlineKeyboardButton(text='Yes', callback_data='yes'),
+            types.InlineKeyboardButton(text='No', callback_data='no')
         ]
         kb = types.InlineKeyboardMarkup(row_width=2)
         kb.add(*buttons)
         print(data)
 
     await state.finish()
-    await message.answer("Спасибо за то что пользуетесь нашим сервисом, вы хотите оставить сообщение?",
+    await message.answer(f"Thank you for your order! Do you want leave a review {data['name']} ?",
                          reply_markup=kb)
 
-
-async def mail(callback: CallbackQuery):
+async def mail(callback: types.CallbackQuery):
     """
-    обработчик, чтоб принять сообщение
+    обработчик чтоб принять сообщение
     """
     await callback.answer()
     message = callback.message
+    user = message.from_user.full_name
+    # user = UserForm.name
+    await message.answer(f"Review from {user}:")
     await message.bot.send_message(
-        text=f'{callback.from_user.first_name} мы передадим твое сообщение админам!',
+        text=f'{callback.from_user.first_name} Thank you for your review!',
         chat_id=message.chat.id
     )
 
 
-async def not_mail(callback: CallbackQuery):
+async def not_mail(callback: types.CallbackQuery):
     """
-    обработчик, чтоб попращаться
+    обработчик чтоб попращаться
     """
     await callback.answer()
     message = callback.message
     await message.bot.send_message(
-        text=f'{callback.from_user.first_name} до свидания!',
+        text=f'{callback.from_user.first_name} Bye! See you soon!',
         chat_id=message.chat.id
     )
